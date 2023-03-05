@@ -4,6 +4,7 @@
 import pandas as pd
 import dash
 import dash_html_components as html
+from dash import dcc
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
 import plotly.express as px
@@ -28,13 +29,13 @@ app.layout = html.Div(
         dcc.Dropdown(
             id="site-dropdown",
             options=[
-                {"label": "All Sites", "value": "ALL"},
+                {"label": "All Sites", "value": "All Sites"},
                 {"label": "CCAFS LC-40", "value": "CCAFS LC-40"},
                 {"label": "VAFB SLC-4E", "value": "VAFB SLC-4E"},
                 {"label": "KSC LC-39A", "value": "KSC LC-39A"},
                 {"label": "CCAFS SLC-40", "value": "CCAFS SLC-40"},
             ],
-            value="ALL",
+            value="All Sites",
             placeholder="Select a Launch Site here",
             searchable=True,
         ),
@@ -63,18 +64,26 @@ app.layout = html.Div(
 # Function decorator to specify function input and output
 @app.callback(
     Output(component_id="success-pie-chart", component_property="figure"),
-    Input(component_id="site-dropdown", component_property="value"),
+    [Input(component_id="site-dropdown", component_property="value")],
 )
-def get_pie_chart(entered_site):
-    filtered_df = spacex_df
-    if entered_site == "ALL":
-        fig = px.pie(filtered_df, values="class", names="Launch Site", title="title")
-        return fig
+def update_graph(site_dropdown):
+    if site_dropdown == "All Sites":
+        df = spacex_df[spacex_df["class"] == 1]
+        fig = px.pie(
+            df,
+            names="Launch Site",
+            hole=0.3,
+            title="Total Success Launches By all sites",
+        )
     else:
-        # return the outcomes piechart for a selected site
-        filtered_df = filtered_df[filtered_df["Launch Site"] == entered_site]
-        fig = px.pie(filtered_df, values="class", names="Launch Site", title="title")
-        return fig
+        df = spacex_df.loc[spacex_df["Launch Site"] == site_dropdown]
+        fig = px.pie(
+            df,
+            names="class",
+            hole=0.3,
+            title="Total Success Launches for site " + site_dropdown,
+        )
+    return fig
 
 
 # TASK 4:
